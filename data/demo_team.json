@@ -1,0 +1,40 @@
+{
+  "team": "COMP9001 Group 7",
+  "week": "2026-03-02",
+  "duration_min": 60,
+  "members": [
+    {
+      "name": "Alice",
+      "city": "Sydney",
+      "tzkey": "Australia/Sydney",
+      "availability": [
+        { "days": ["Mon", "Tue", "Wed", "Thu", "Fri"], "start": "19:00", "end": "23:00" }
+      ]
+    },
+    {
+      "name": "Bo",
+      "city": "Beijing",
+      "tzkey": "Asia/Shanghai",
+      "availability": [
+        { "days": ["Mon", "Tue", "Wed", "Thu", "Fri"], "start": "09:00", "end": "12:00" },
+        { "days": ["Mon", "Tue", "Wed", "Thu", "Fri"], "start": "18:00", "end": "22:00" }
+      ]
+    },
+    {
+      "name": "Chen",
+      "city": "London",
+      "tzkey": "Europe/London",
+      "availability": [
+        { "days": ["Mon", "Tue", "Wed", "Thu", "Fri"], "start": "09:00", "end": "15:00" }
+      ]
+    },
+    {
+      "name": "Dan",
+      "city": "New York",
+      "tzkey": "America/New_York",
+      "availability": [
+        { "days": ["Mon", "Tue", "Wed", "Thu", "Fri"], "start": "06:00", "end": "09:00" }
+      ]
+    }
+  ]
+}
