@@ -12,6 +12,7 @@ front ends (and the batch mode) can never drift apart.
 
 import argparse
 import os
+import sys
 from datetime import datetime, timedelta, timezone
 
 import ics_import
@@ -28,6 +29,18 @@ DEMO_ICS = os.path.join(HERE, "data", "example_calendar.ics")
 DEMO_CSV = os.path.join(HERE, "data", "example_roster.csv")
 RULE = "=" * 62
 THIN = "-" * 62
+
+
+def display_available():
+    """Can this machine probably open a Tk window?
+
+    Ed, CI containers and most servers are headless: there is no DISPLAY, and
+    tkinter raises TclError as soon as Tk() is called.  Checking first lets the
+    program fall back to the terminal menu instead of printing a traceback.
+    """
+    if sys.platform.startswith(("win", "darwin")):
+        return True
+    return bool(os.environ.get("DISPLAY") or os.environ.get("WAYLAND_DISPLAY"))
 
 
 def resolve_zone(text):
@@ -65,11 +78,21 @@ class CommandLine:
     def run(self):
         while True:
             self.menu()
-            choice = input("Select [0-12]: ").strip() or "0"
+            try:
+                choice = input("Select [0-12]: ").strip() or "0"
+            except EOFError:
+                print()
+                print("(no input left: closing the menu)")
+                return 0
             if choice == "0":
                 print("Bye.")
                 return 0
-            self.dispatch(choice)
+            try:
+                self.dispatch(choice)
+            except EOFError:
+                print()
+                print("(no more input: closing the menu)")
+                return 0
 
     def menu(self):
         print(RULE)
@@ -284,12 +307,24 @@ class CommandLine:
             print("Answer s or l.")
 
     def launch_gui(self):
-        import gui
+        if not display_available():
+            print("No display found: this machine cannot open the window.")
+            print("Use option 3 to plan a meeting in the terminal instead.")
+            return
+        try:
+            import tkinter
+            import gui
+        except ImportError as exc:
+            print("! no graphical window available: %s" % exc)
+            return
 
         path = os.path.join(storage.ensure_output_dir(), "team_session.json")
         storage.save_team(path, self.team_name, self.week, self.duration, self.roster)
         print("Opening the window; it starts from the team you have right here.")
-        gui.main(path)
+        try:
+            gui.main(path)
+        except tkinter.TclError as exc:
+            print("! the window could not be opened: %s" % exc)
 
     def export_last(self):
         if self.plan is None:
@@ -400,15 +435,27 @@ def main(argv=None):
 
     if not args.cli:
         try:
+            import tkinter
             import gui
         except ImportError as exc:
             print("(no graphical window available: %s)" % exc)
             print("(staying in the terminal)")
         else:
-            if args.week or args.duration:
-                print("Note: --week and --duration apply to the terminal menu only;"
-                      " set them in the window instead.")
-            return gui.main(args.file)
+            if not display_available():
+                print("(no display found: this machine cannot open the window)")
+                print("(staying in the terminal menu; --report runs without prompts)")
+            else:
+                if args.week or args.duration:
+                    print("Note: --week and --duration apply to the terminal menu"
+                          " only; set them in the window instead.")
+                try:
+                    code = gui.main(args.file)
+                except tkinter.TclError as exc:
+                    print("(the window could not be opened: %s)" % exc)
+                else:
+                    if code == 0:
+                        return 0
+                print("(staying in the terminal)")
 
     return CommandLine(args.file, args.week, args.duration, args.top).run()
 

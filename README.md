@@ -2,7 +2,7 @@
 
 **Find the least painful meeting time for a team spread across time zones.**
 
-![TeamSync recommendations](docs/screenshots/results.png)
+![TeamSync recommendations](screenshot.png)
 
 TeamSync takes each member's city and weekly availability, scores every half
 hour of the week by who can attend and how civilised the local time is, and
@@ -30,8 +30,9 @@ library only: no installation, no network, timezone data bundled.
 ## Requirements
 
 - Python **3.9+** (tested on 3.11 and 3.13).
-- **tkinter** for the window (ships with the official Python installer). Without
-  it, `python main.py` falls back to the terminal menu instead of crashing.
+- **tkinter** for the window (ships with the official Python installer).
+  Without it — or on a machine with no display, such as Ed or a server —
+  `python main.py` falls back to the terminal menu instead of crashing.
 - Nothing else: `zoneinfo`, `json`, `csv`, `datetime` and `argparse` are all
   standard library, and the IANA timezone files are bundled in `data/tzfiles/`.
 
@@ -48,6 +49,9 @@ python -m unittest discover tests
 
 The window opens on a four-person demo team, so there is something to try
 immediately. Press **Compute best times**.
+
+On a headless machine (Ed, SSH, CI) the window cannot open; the program notices
+and starts the terminal menu instead. Use `--report` for a non-interactive run.
 
 ## How to use it
 
@@ -188,8 +192,8 @@ TeamSync/
 ├── render.py        pure text output
 ├── storage.py       JSON / TXT / ICS / HTML / CSV
 ├── data/            cities, demo teams, sample calendar and roster, TZif files
-├── tests/           107 tests (planner, features, imports, CLI)
-├── docs/            presentation script, Padlet notes, screenshots
+├── tests/           110 tests (planner, features, imports, CLI)
+├── screenshot.png   the window, as shown at the top of this README
 └── output/          generated files
 ```
 
@@ -197,7 +201,7 @@ TeamSync/
 
 ```text
 $ python -m unittest discover tests
-Ran 107 tests in 1.7s
+Ran 110 tests in 1.7s
 OK
 ```
 
@@ -215,11 +219,5 @@ themselves when tkinter or a display is missing.
 - Calendar import handles one-off events and daily/weekly repeats; all-day
   events and monthly/yearly repeats are skipped with a warning (use away dates).
 - Repeating events are expanded eight weeks from the planned week.
-
-## More documentation
-
-- [`docs/PRESENTATION.md`](docs/PRESENTATION.md) — three-minute demo script.
-- [`docs/PADLET.md`](docs/PADLET.md) — title, image and description for Padlet.
-- `docs/screenshots/` — window and report screenshots.
-- A bilingual code walkthrough (`code_review.md`) is kept with the submission.
-
+- On Ed / servers there is no display, so `python main.py` opens the terminal
+  menu; `python main.py --report` writes the result without any prompts.

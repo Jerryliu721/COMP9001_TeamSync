@@ -1254,8 +1254,18 @@ calendar. The < and > buttons beside the week move it by one week.
 
 
 def main(team_path=None):
-    """Open the window and block until it is closed."""
-    root = tk.Tk()
+    """Open the window and block until it is closed.
+
+    On a headless machine (Ed, a server, CI) Tk() raises TclError because there
+    is no display.  Say so in one line and point at the terminal menu instead of
+    dumping a traceback.
+    """
+    try:
+        root = tk.Tk()
+    except tk.TclError as exc:
+        print("Cannot open a window on this machine: %s" % exc)
+        print("Run  python main.py --cli  for the terminal version.")
+        return 1
     TeamSyncApp(root, team_path)
     root.mainloop()
     return 0

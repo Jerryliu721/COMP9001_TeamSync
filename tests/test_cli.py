@@ -211,5 +211,42 @@ class TestBatchMode(unittest.TestCase):
         self.assertIn("unknown export format", out)
 
 
+class TestHeadless(unittest.TestCase):
+    """Ed and servers have no display: the window must degrade to the menu."""
+
+    def test_display_available(self):
+        with mock.patch.object(main.sys, "platform", "win32"):
+            self.assertTrue(main.display_available())
+        with mock.patch.object(main.sys, "platform", "linux"), \
+                mock.patch.dict(os.environ, {"DISPLAY": "", "WAYLAND_DISPLAY": ""}):
+            self.assertFalse(main.display_available())
+        with mock.patch.object(main.sys, "platform", "linux"), \
+                mock.patch.dict(os.environ, {"DISPLAY": ":0", "WAYLAND_DISPLAY": ""}):
+            self.assertTrue(main.display_available())
+
+    def test_no_display_falls_back_to_the_menu(self):
+        buffer = io.StringIO()
+        with mock.patch.object(main, "display_available", return_value=False), \
+                mock.patch("builtins.input", side_effect=["0"]):
+            with contextlib.redirect_stdout(buffer):
+                code = main.main(["--file", DEMO_TEAM])
+        out = buffer.getvalue()
+        self.assertEqual(code, 0)
+        self.assertIn("no display found", out)
+        self.assertIn("Bye.", out)
+        self.assertNotIn("Traceback", out)
+
+    def test_end_of_input_closes_the_menu(self):
+        buffer = io.StringIO()
+        with mock.patch.object(main, "display_available", return_value=False), \
+                mock.patch("builtins.input", side_effect=EOFError):
+            with contextlib.redirect_stdout(buffer):
+                code = main.main(["--file", DEMO_TEAM])
+        out = buffer.getvalue()
+        self.assertEqual(code, 0)
+        self.assertIn("closing the menu", out)
+        self.assertNotIn("Traceback", out)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
